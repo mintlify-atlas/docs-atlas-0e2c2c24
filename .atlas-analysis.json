@@ -1,0 +1,89 @@
+{
+  "projectType": "saas",
+  "projectName": "KeyForge",
+  "projectDescription": "A 100% client-side, cryptographically secure password generator with anti-bruteforce guards, entropy DNA visualization, and a unique Phonetic Shield mode — zero telemetry, zero data collection.",
+  "theme": "almond",
+  "primaryColor": "#f85826",
+  "lightColor": "#fc9c7c",
+  "darkColor": "#f6f5f4",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Overview",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "How It Works",
+            "pages": [
+              "how-it-works/security-model",
+              "how-it-works/entropy-explained",
+              "how-it-works/anti-bruteforce-guards"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Generator Modes",
+        "groups": [
+          {
+            "group": "Modes",
+            "pages": [
+              "modes/password",
+              "modes/passphrase",
+              "modes/pin",
+              "modes/phonetic-shield"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Technical Reference",
+            "pages": [
+              "reference/pasgen-api",
+              "reference/entropy-api",
+              "reference/configuration"
+            ]
+          },
+          {
+            "group": "Legal",
+            "pages": ["reference/privacy-policy"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Cryptographically secure randomness via crypto.getRandomValues() (CSPRNG)",
+    "Four generator modes: Password, Passphrase, PIN, and Phonetic Shield",
+    "Anti-bruteforce guards: blocks keyboard walks, weak fragments, ambiguous chars, and consecutive repeats",
+    "Entropy DNA visualization — per-character color-coded bar showing character class composition",
+    "Real-time entropy calculation with crack-time estimates (bits & time-to-crack display)",
+    "Phonetic Shield mode — pronounceable syllable-based passwords with injected high-entropy characters",
+    "EFF-inspired 200-word curated wordlist for passphrase generation",
+    "100% client-side — no backend, no telemetry, no cookies, works offline after load",
+    "Dark/light theme toggle with localStorage persistence",
+    "Customizable character pools, minimum character counts, symbol sets, and force-include characters"
+  ],
+  "publicApiSurface": [
+    "PassGen.generatePassword(options) — generates a cryptographically secure password",
+    "PassGen.generatePassphrase(options) — generates a word-based passphrase",
+    "PassGen.generatePin(options) — generates a secure numeric PIN",
+    "PassGen.generatePhonetic(options) — generates a Phonetic Shield password with pronunciation guide",
+    "PassGen.buildPool(options) — builds the character pool for a given set of options",
+    "Entropy.getPoolSize(options) — calculates the effective character pool size",
+    "Entropy.calcPasswordEntropy(length, poolSize) — returns entropy in bits",
+    "Entropy.calcPassphraseEntropy(wordCount, wordListSize, hasNum, hasSym) — returns entropy in bits",
+    "Entropy.calcPinEntropy(length) — returns entropy in bits",
+    "Entropy.calcPhoneticEntropy(syllableCount, entropyLevel) — returns entropy in bits",
+    "Entropy.getCrackTime(entropyBits) — returns human-readable crack time estimate",
+    "Entropy.updateStrengthUI(entropy, prefix) — updates the strength meter DOM elements",
+    "Entropy.renderEntropyDNA(password, containerId) — renders the per-character DNA bar",
+    "Entropy.renderDNALegend(containerId) — renders the DNA legend"
+  ]
+}
