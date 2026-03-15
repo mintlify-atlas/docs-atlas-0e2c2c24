@@ -1,80 +1,133 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Start generating cryptographically secure passwords with KeyForge in under two minutes."
 ---
 
-## Get started in three steps
+KeyForge runs entirely in your browser. There is nothing to install, no account to create, and no data that ever leaves your device.
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Open KeyForge">
+    Navigate to [keyforgegd.vercel.app](https://keyforgegd.vercel.app) in any modern browser.
 
-### Step 1: Set up your local environment
+    The app loads instantly and generates a secure password automatically. You can use it offline after the first load — no network connection is required for generation.
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Choose a generator mode">
+    Use the four tabs at the top to switch between generation modes:
 
-### Step 2: Deploy your changes
+    <Tabs>
+      <Tab title="Password">
+        Full character-class control with configurable length (8–128 characters), anti-bruteforce guards, and custom character pools. Best for website logins, API keys, and service credentials.
+      </Tab>
+      <Tab title="Passphrase">
+        Word-based passwords from a 200-word curated list. Memorable and mathematically strong. Best for master passwords and credentials you need to type or remember.
+      </Tab>
+      <Tab title="PIN">
+        Numeric PINs from 4–20 digits with guards against sequences and common patterns. Best for device unlock codes, ATM PINs, and numeric access codes.
+      </Tab>
+      <Tab title="Phonetic Shield">
+        Pronounceable syllable-based passwords with entropy injected between syllables. You can say them aloud and remember them, yet they resist all standard attack methods. Best for credentials that must be dictated or typed from memory.
+      </Tab>
+    </Tabs>
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Step title="Configure your settings">
+    Each mode has its own settings panel below the output field.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    **For Password mode:**
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    | Setting | Default | What it does |
+    |---------|---------|--------------|
+    | Length | 16 | Drag the slider from 8 to 128 |
+    | Uppercase A–Z | On | Include capital letters |
+    | Lowercase a–z | On | Include lowercase letters |
+    | Digits 0–9 | On | Include numbers |
+    | Symbols | On | Include `!@#$%^&*` and others |
+    | Exclude ambiguous | On | Remove `0`, `O`, `l`, `1`, `I` and similar |
+    | Block keyboard walks | On | Prevent `qwe`, `asd`, `123` sequences |
+    | Block weak fragments | On | Prevent `pass`, `admin`, `login` substrings |
 
-### Step 3: Go live
+    <Tip>
+      Settings take effect immediately — the output regenerates live as you change any control. You do not need to click Generate after adjusting a slider or checkbox.
+    </Tip>
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="Read the entropy output">
+    Below the generated password you'll see three pieces of information:
+
+    - **Strength label** — one of: Very Weak, Weak, Fair, Strong, Very Strong, Fortress
+    - **Entropy bits** — the information-theoretic measure of unpredictability (aim for 73+ bits for real accounts)
+    - **Crack time** — estimated time to brute-force at 1 trillion guesses per second
+
+    | Strength | Bits | Crack time at 10¹² guesses/sec |
+    |----------|------|-------------------------------|
+    | Very Weak | < 36 | Milliseconds |
+    | Weak | 36–55 | Minutes to hours |
+    | Fair | 56–72 | Days to months |
+    | Strong | 73–94 | Years |
+    | Very Strong | 95–127 | Thousands of years |
+    | Fortress | 128+ | Heat death of universe |
+
+    The **Entropy DNA bar** above the strength meter shows each character as a colored block: coral for uppercase, silver for lowercase, cyan for digits, and gold for symbols. A varied color pattern confirms a well-mixed password.
+
+    <Note>
+      For any account that matters — email, banking, password manager — target **73 bits or higher** (Strong or better). The default 16-character password with all four character classes enabled produces approximately 104 bits.
+    </Note>
+  </Step>
+
+  <Step title="Copy your password">
+    You have three ways to copy:
+
+    1. **Click the output field** — copies instantly and shows a confirmation toast
+    2. **Click the ⧉ icon** on the right of the output field
+    3. **Press Ctrl+Enter** (or Cmd+Enter on Mac) to regenerate, then copy
+
+    <Tip>
+      Use **Ctrl+Enter** to regenerate quickly without reaching for the mouse. The shortcut works for whichever tab is active.
+    </Tip>
+
+    After copying, paste directly into your password manager or the target field. KeyForge never stores generated passwords.
+  </Step>
+</Steps>
+
+## Quick configuration reference
+
+<Tabs>
+  <Tab title="Website login">
+    Password mode · Length 16 · All classes on · Ambiguous excluded · All guards on
+
+    Produces approximately 104 bits. Suitable for any web account.
+  </Tab>
+  <Tab title="Master password">
+    Passphrase mode · 6 words · Capitalize on · Append number on · Append symbol on
+
+    Produces approximately 56 + 6.5 + 2.8 = 65 bits from the word selections alone plus extras. Memorable enough to type from memory.
+  </Tab>
+  <Tab title="PIN">
+    PIN mode · 8 digits · Block sequences on · Block common patterns on
+
+    Produces 26.6 bits — use the longest PIN your device supports for maximum security.
+  </Tab>
+  <Tab title="Dictated credential">
+    Phonetic Shield · 4 syllable groups · Medium entropy · Capitalize on · Show guide on
+
+    The pronunciation guide shows syllables like `BRAY · FLUND · STOO · PLAK` so you can read the password aloud to someone or type it without looking at the screen.
+  </Tab>
+</Tabs>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Security model" icon="shield-halved" href="/how-it-works/security-model">
+    Learn why crypto.getRandomValues() matters and how the client-side architecture guarantees your passwords stay private.
+  </Card>
+  <Card title="Generator modes" icon="key" href="/modes/password">
+    Explore all settings for each mode in detail.
+  </Card>
+  <Card title="Entropy explained" icon="chart-bar" href="/how-it-works/entropy-explained">
+    Understand what entropy bits mean and how crack-time estimates are calculated.
+  </Card>
+  <Card title="Anti-bruteforce guards" icon="shield-check" href="/how-it-works/anti-bruteforce-guards">
+    See exactly which patterns are blocked and why they matter.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

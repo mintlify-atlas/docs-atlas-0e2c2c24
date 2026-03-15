@@ -1,0 +1,102 @@
+---
+title: "Configuration"
+description: "A reference for all of KeyForge's configurable settings, their defaults, and how the theme preference persists via localStorage."
+---
+
+KeyForge has no configuration file. All settings are exposed as UI controls on the page. The only value that persists between sessions is the theme preference, stored in `localStorage`.
+
+<Note>
+  Settings are not saved between sessions. Every time you open KeyForge, all generator options reset to their defaults. Only your theme preference (dark or light) is remembered.
+</Note>
+
+---
+
+## Theme persistence
+
+KeyForge stores exactly one value in `localStorage`:
+
+| Key | Values | Default |
+|-----|--------|---------|
+| `kf-theme` | `'dark'` \| `'light'` | Follows `prefers-color-scheme` media query; falls back to `'dark'` |
+
+```javascript
+// Read the current theme
+localStorage.getItem('kf-theme'); // 'dark' | 'light' | null
+
+// Override programmatically
+localStorage.setItem('kf-theme', 'light');
+```
+
+When no value is stored, KeyForge checks `window.matchMedia('(prefers-color-scheme: dark)')` and defaults to dark mode if the query is unsupported or returns `false`.
+
+---
+
+## Password mode defaults
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| Length | `16` | Range: 8–128 |
+| Lowercase | enabled | |
+| Uppercase | enabled | |
+| Digits | enabled | |
+| Symbols | enabled | |
+| Symbol pool | 30-character set including `!@#$%^&*()_+-=[]{}` and more | Full set |
+| Exclude ambiguous chars | enabled | Removes `0 O o l 1 I | \` ' " \\` |
+| Block keyboard walks | enabled | e.g. `qwe`, `asd`, `123` |
+| No consecutive repeats | disabled | |
+| Block weak fragments | enabled | e.g. `pass`, `admin`, `qwer` |
+| Min lowercase | `1` | |
+| Min uppercase | `1` | |
+| Min digits | `1` | |
+| Min symbols | `1` | |
+
+---
+
+## Passphrase mode defaults
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| Word count | `5` | |
+| Separator | `-` (dash) | |
+| Capitalize words | enabled | |
+| Append number | enabled | Appends a random digit |
+| Append symbol | enabled | Appends a random symbol |
+| Leet substitution | disabled | Replaces vowels with digits |
+
+---
+
+## PIN mode defaults
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| Length | `6` | |
+| No repeating digits | disabled | |
+| Block sequences | enabled | e.g. `123`, `987` |
+| Block common patterns | enabled | e.g. `000000`, `123456` |
+
+---
+
+## Phonetic Shield defaults
+
+| Setting | Default | Notes |
+|---------|---------|-------|
+| Syllable count | `3` | |
+| Entropy level | `medium` | Options: `light`, `medium`, `heavy` |
+| Capitalize syllables | enabled | |
+| Show pronunciation guide | enabled | e.g. `BRAY · FLUND · STOO` |
+
+---
+
+## Keyboard shortcut
+
+<Tip>
+  Press `Ctrl+Enter` (or `Cmd+Enter` on Mac) to regenerate a new password, passphrase, PIN, or phonetic password for whichever generator tab is currently active — without reaching for the mouse.
+</Tip>
+
+---
+
+## No configuration file
+
+KeyForge is a static single-page application with no server, no user accounts, and no persistent configuration storage beyond `localStorage`. There is no config file to edit and no environment variables to set.
+
+If you are self-hosting KeyForge or embedding it, you can change the default behavior by modifying `pasgen.js` and `entropy.js` directly — all defaults are defined as JavaScript constants and function default parameters within those files.

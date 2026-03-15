@@ -1,0 +1,99 @@
+---
+title: "Introduction"
+description: "KeyForge is a cryptographically secure, 100% client-side password generator with anti-bruteforce guards and entropy visualization."
+---
+
+KeyForge is a browser-based credential generator built for people who take security seriously. Every password, passphrase, PIN, and phonetic sequence is generated entirely on your device using `crypto.getRandomValues()` — the same cryptographic source used by TLS and modern security systems. Nothing is sent to a server. Nothing is logged. Nothing is tracked.
+
+<Note>
+KeyForge runs 100% in your browser. Your generated passwords never leave your device — there is no backend, no API call, and no network request involved in generation.
+</Note>
+
+## Four generator modes
+
+<CardGroup cols={2}>
+  <Card title="Password" icon="lock" href="/modes/password">
+    Full control over length (8–128 characters), character classes, anti-bruteforce guards, and custom character pools. Configure minimum counts per class and exclude any characters you choose.
+  </Card>
+  <Card title="Passphrase" icon="text" href="/modes/passphrase">
+    Word-based credentials drawn from a curated 200-word list. Memorable yet mathematically strong — with optional leet substitution, injected numbers, and symbols between words.
+  </Card>
+  <Card title="PIN" icon="grid-2" href="/modes/pin">
+    Numeric PINs from 4–20 digits, with guards against sequential runs (1234, 9876), repeating digits, and common patterns.
+  </Card>
+  <Card title="Phonetic Shield" icon="waveform" href="/modes/phonetic-shield">
+    Pronounceable syllable-based passwords with entropy injected between groups. Memorable enough to say aloud, strong enough to defeat every bruteforce method.
+  </Card>
+</CardGroup>
+
+## Security guarantees
+
+KeyForge is built on three non-negotiable properties:
+
+**Cryptographic randomness.** All character and word selection uses `crypto.getRandomValues()` (a CSPRNG) via a bias-free Fisher-Yates shuffle. `Math.random()` is never used anywhere in the generation pipeline.
+
+**Client-side only.** There is no backend, no API, no analytics SDK, and no telemetry. The only data stored is your theme preference in `localStorage`. KeyForge works fully offline after the initial page load.
+
+**Auditable source.** All generation logic runs in your browser. You can inspect every line of `pasgen.js` and `entropy.js` directly in your browser's developer tools.
+
+## Anti-bruteforce guard system
+
+KeyForge applies a layered set of guards that reject any generated output containing patterns attackers exploit first:
+
+<CardGroup cols={2}>
+  <Card title="Ambiguous character exclusion" icon="eye-slash">
+    Optionally strips characters that are visually indistinguishable across fonts — `0`, `O`, `o`, `l`, `1`, `I`, `|`, and similar — reducing transcription errors without sacrificing entropy.
+  </Card>
+  <Card title="Keyboard walk blocking" icon="keyboard">
+    Detects and rejects sequences that follow keyboard rows (`qwerty`, `asdf`, `zxcv`, `1234`) — one of the most common patterns in cracked password databases.
+  </Card>
+  <Card title="Sequential character blocking" icon="arrow-right">
+    Blocks ascending and descending runs of letters (`abc`, `xyz`) and digits (`123`, `987`) regardless of case.
+  </Card>
+  <Card title="Dictionary fragment blocking" icon="book">
+    Rejects passwords containing fragments of high-frequency weak strings: `pass`, `admin`, `root`, `login`, `secret`, `hello`, and dozens more.
+  </Card>
+  <Card title="Consecutive repeat blocking" icon="repeat">
+    Prevents the same character from appearing consecutively (`aaa`, `111`), which dramatically reduces the effectiveness of pattern-based attacks.
+  </Card>
+  <Card title="Guaranteed class coverage" icon="shield-check">
+    When character classes are enabled, KeyForge guarantees at least one character from each selected class appears in the output — not just statistically likely.
+  </Card>
+</CardGroup>
+
+<Tip>
+All guards are opt-in and configurable. You can enable or disable each one independently in the Password mode settings.
+</Tip>
+
+## Entropy DNA visualization
+
+Every generated credential includes a real-time entropy breakdown:
+
+- **Entropy bits** — the exact Shannon entropy of the credential given your configuration
+- **Strength label** — one of six levels from Very Weak to Fortress
+- **Crack-time estimate** — how long an offline attack at 1 trillion guesses per second would take
+- **DNA bar** — a color-coded strip where each segment represents one character, colored by its class (uppercase, lowercase, digit, symbol)
+
+| Strength level | Entropy range | Approximate crack time |
+|---|---|---|
+| Very Weak | 0–35 bits | Milliseconds |
+| Weak | 36–55 bits | Minutes to hours |
+| Fair | 56–72 bits | Days to months |
+| Strong | 73–94 bits | Years |
+| Very Strong | 95–127 bits | Thousands of years |
+| Fortress | 128+ bits | Heat death of the universe |
+
+<Note>
+Crack-time estimates use an offline attack baseline of 1 trillion guesses per second (modern GPU farm against raw MD5/SHA). For slow hash functions like bcrypt or Argon2, real-world times would be orders of magnitude longer.
+</Note>
+
+## Ready to generate?
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Open KeyForge in your browser and generate your first cryptographically secure password in under two minutes.
+  </Card>
+  <Card title="How it works" icon="shield-halved" href="/how-it-works/security-model">
+    Understand the cryptographic foundation, entropy calculations, and why your passwords never leave your device.
+  </Card>
+</CardGroup>

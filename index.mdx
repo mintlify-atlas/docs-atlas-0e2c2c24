@@ -1,97 +1,84 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "KeyForge"
+description: "Cryptographically secure password generator with anti-bruteforce guards, entropy DNA visualization, and Phonetic Shield. 100% client-side — zero telemetry."
 ---
 
-## Setting up
-
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Start generating secure passwords in seconds — no signup, no install, no server.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Generator Modes" icon="key" href="/modes/password">
+    Explore all four modes: Password, Passphrase, PIN, and Phonetic Shield.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Security Model" icon="shield-halved" href="/how-it-works/security-model">
+    Understand the cryptographic foundation and why your passwords never leave your device.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="API Reference" icon="code" href="/reference/pasgen-api">
+    Integrate KeyForge's generation engine directly into your own projects.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What is KeyForge?
 
-Everything you need to create world-class documentation.
+KeyForge is a browser-based password generator built for people who take security seriously. Every password is generated entirely on your device using `crypto.getRandomValues()` — the same cryptographic source used by TLS and modern security systems. Nothing is sent to a server. Nothing is logged. Nothing is tracked.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+### Four generation modes
 
-## Need inspiration?
+<CardGroup cols={2}>
+  <Card title="Password" icon="lock" href="/modes/password">
+    Full control over length, character classes, anti-bruteforce guards, and custom character pools. Up to 128 characters with configurable minimums per class.
+  </Card>
+  <Card title="Passphrase" icon="text" href="/modes/passphrase">
+    Word-based passwords drawn from a curated 200-word list. Memorable yet mathematically strong — with optional leet substitution, numbers, and symbols.
+  </Card>
+  <Card title="PIN" icon="grid-2" href="/modes/pin">
+    Numeric PINs from 4–20 digits with guards against sequences, repeating digits, and common patterns like 1234 or 9876.
+  </Card>
+  <Card title="Phonetic Shield" icon="waveform" href="/modes/phonetic-shield">
+    Pronounceable syllable-based passwords with entropy injected between groups. Say it aloud, remember it, and still defeat every bruteforce method.
+  </Card>
+</CardGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## Why KeyForge?
+
+<CardGroup cols={3}>
+  <Card title="Cryptographic randomness" icon="dice">
+    Uses `crypto.getRandomValues()` (CSPRNG) — not `Math.random()`. Every character selection is cryptographically unpredictable.
+  </Card>
+  <Card title="Anti-bruteforce guards" icon="shield-check">
+    Automatically blocks keyboard walks (qwerty, asdf), dictionary fragments (pass, admin), sequential patterns, and ambiguous characters.
+  </Card>
+  <Card title="Zero telemetry" icon="eye-slash">
+    No backend. No analytics. No cookies beyond a theme preference. Works offline once loaded.
+  </Card>
+  <Card title="Entropy DNA" icon="dna">
+    Visual per-character breakdown of uppercase, lowercase, digit, and symbol composition with real-time entropy bits and crack-time estimates.
+  </Card>
+  <Card title="Phonetic Shield" icon="microphone">
+    A unique mode — pronounceable passwords that resist dictionary, bruteforce, and pattern-based attacks simultaneously.
+  </Card>
+  <Card title="Full customization" icon="sliders">
+    Configure symbol pools, excluded characters, forced inclusions, minimum counts per class, and more.
+  </Card>
+</CardGroup>
+
+## Entropy at a glance
+
+KeyForge displays real-time entropy for every generated credential:
+
+| Strength Level | Entropy Range | Example Crack Time |
+|---|---|---|
+| Very Weak | < 36 bits | Milliseconds |
+| Weak | 36–55 bits | Minutes to hours |
+| Fair | 56–72 bits | Days to months |
+| Strong | 73–94 bits | Years |
+| Very Strong | 95–127 bits | Thousands of years |
+| Fortress | 128+ bits | ∞ (heat death of universe) |
+
+<Note>
+Crack time estimates assume an offline attack at 1 trillion guesses per second (modern GPU farm, raw MD5/SHA). For bcrypt or Argon2, real-world times would be orders of magnitude longer.
+</Note>
+
+## Open source
+
+KeyForge is open source. The full source is available on [GitHub](https://github.com/Gosiverua/keyforgegd). All generation logic runs in your browser — you can audit every line.

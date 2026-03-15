@@ -1,0 +1,106 @@
+---
+title: "Security model"
+description: "How KeyForge uses cryptographic randomness and a client-side architecture to guarantee that your passwords are unpredictable and never leave your device."
+---
+
+KeyForge generates passwords entirely in your browser. No credentials are transmitted to a server, no generation requests touch a network, and no telemetry is collected. This page explains the cryptographic foundations that make that guarantee meaningful.
+
+## Cryptographically secure randomness
+
+All randomness in KeyForge comes from the Web Cryptography API's `crypto.getRandomValues()`, which is available in every modern browser. This is fundamentally different from `Math.random()`.
+
+<Warning>
+  **Never use `Math.random()` for security-sensitive values.** `Math.random()` is a pseudorandom number generator (PRNG) seeded from observable state. Its output is statistically predictable and can be reverse-engineered from a sequence of outputs. It must not be used for cryptographic keys, passwords, tokens, or any value that must be unpredictable.
+</Warning>
+
+`crypto.getRandomValues()` draws entropy directly from the operating system's CSPRNG (e.g., `/dev/urandom` on Linux, `CryptGenRandom` on Windows). The output passes statistical randomness tests and is computationally infeasible to predict even with full knowledge of previous outputs.
+
+KeyForge uses two thin wrappers around `getRandomValues`:
+
+```javascript pasgen.js
+// Cryptographically secure RNG
+function cryptoRand(max) {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0] % max;
+}
+
+function cryptoRandFloat() {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0] / 0xFFFFFFFF;
+}
+```
+
+<Note>
+  `cryptoRand(max)` applies a modulo operation, which introduces a slight bias when `max` does not divide evenly into `2^32`. For typical pool sizes (26–95 characters) this bias is negligible — on the order of one part in 45 million — and does not meaningfully reduce security.
+</Note>
+
+## Fisher-Yates shuffle with CSPRNG
+
+After characters are selected from the pool, the resulting array is shuffled using the Fisher-Yates algorithm driven by `cryptoRand`. This guarantees that every permutation of the selected characters is equally likely — there is no positional bias toward characters chosen earlier.
+
+```javascript pasgen.js
+// Fisher-Yates shuffle using CSPRNG
+function fisherYates(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = cryptoRand(i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+```
+
+The shuffle walks the array from the last element to the first. At each position `i`, a random index `j` in the range `[0, i]` is selected and the elements are swapped. Because `j` is drawn from a CSPRNG, each possible output ordering receives equal probability.
+
+## Client-side architecture
+
+<Steps>
+  <Step title="You configure options in the browser">
+    Character classes, length, exclusions, and guard settings are all state held in your browser's JavaScript runtime.
+  </Step>
+  <Step title="The browser generates entropy">
+    `crypto.getRandomValues()` draws entropy from the OS CSPRNG — no network request is made.
+  </Step>
+  <Step title="The password is assembled locally">
+    Character selection, shuffling, and anti-pattern validation all run in the same browser tab.
+  </Step>
+  <Step title="The result is displayed">
+    The generated password is written to the DOM. It never leaves your device unless you copy and paste it.
+  </Step>
+</Steps>
+
+<Note>
+  You can open KeyForge, disconnect from the internet, and generate passwords indefinitely. The generation pipeline has no network dependencies.
+</Note>
+
+## Local storage usage
+
+KeyForge stores exactly one value in `localStorage`:
+
+| Key | Value | Purpose |
+|-----|-------|---------|
+| `kf-theme` | `"dark"` or `"light"` | Preserves your UI theme preference across sessions |
+
+No generated passwords are stored. No configuration history is persisted. Clearing `localStorage` removes the theme preference and has no other effect.
+
+## Zero telemetry
+
+KeyForge contains no analytics scripts, no error reporting endpoints, no A/B testing infrastructure, and no third-party tracking pixels. There are no calls to external services during password generation or at any other point during normal use.
+
+## Privacy summary
+
+<Columns cols={2}>
+  <Card title="What KeyForge never does" icon="shield-x">
+    - Sends passwords or inputs to a server
+    - Logs generation events
+    - Uses third-party analytics
+    - Reads clipboard contents
+    - Stores passwords locally
+  </Card>
+  <Card title="What KeyForge does store" icon="database">
+    - `kf-theme` in `localStorage` — your dark/light preference only
+    - Nothing else is written to storage at any time
+  </Card>
+</Columns>

@@ -1,0 +1,174 @@
+---
+title: "Entropy explained"
+description: "A practical guide to how KeyForge calculates and displays password entropy, strength levels, and crack-time estimates."
+---
+
+Entropy is the measure of unpredictability in a generated password. Higher entropy means an attacker must exhaust more possibilities before finding the correct password through brute force. KeyForge calculates and displays entropy in bits throughout the UI.
+
+## What entropy bits mean
+
+In information theory, one bit of entropy doubles the size of the search space an attacker must cover. A password with `n` bits of entropy requires, on average, `2^(n-1)` guesses to crack — half the total space, because the attacker expects to find the answer halfway through an exhaustive search.
+
+Entropy is **not** a measure of complexity visible in the password itself. It is a measure of how much uncertainty an attacker faces when they know the generation algorithm but not the specific output.
+
+## Password entropy formula
+
+For a randomly generated password, entropy is calculated as:
+
+```
+entropy (bits) = length × log₂(poolSize)
+```
+
+Each character position contributes `log₂(poolSize)` bits independently, because each character is drawn uniformly at random from the full pool.
+
+```javascript entropy.js
+function calcPasswordEntropy(length, poolSize) {
+  if (length <= 0 || poolSize <= 1) return 0;
+  return length * Math.log2(poolSize);
+}
+```
+
+### How pool size is calculated
+
+The pool is the set of characters that can appear at each position. KeyForge builds it by combining enabled character classes and removing excluded characters:
+
+```javascript entropy.js
+function getPoolSize(options = {}) {
+  const {
+    useLower   = true,
+    useUpper   = true,
+    useDigits  = true,
+    useSymbols = true,
+    symbolSet  = '!@#$%^&*()_+-=[]{}|;:,.<>?/~',
+    excludeAmbiguous = false,
+    customExclude    = '',
+  } = options;
+
+  const excluded = new Set(customExclude ? customExclude.split('') : []);
+  if (excludeAmbiguous) {
+    ['0','O','o','l','1','I','|','`','\'','"','\\'].forEach(c => excluded.add(c));
+  }
+
+  let pool = 0;
+  if (useLower)   pool += 'abcdefghijklmnopqrstuvwxyz'.split('').filter(c => !excluded.has(c)).length;
+  if (useUpper)   pool += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(c => !excluded.has(c)).length;
+  if (useDigits)  pool += '0123456789'.split('').filter(c => !excluded.has(c)).length;
+  if (useSymbols) pool += symbolSet.split('').filter(c => !excluded.has(c)).length;
+
+  return Math.max(2, pool);
+}
+```
+
+With all classes enabled and no exclusions, the default pool is:
+
+| Class | Characters | Count |
+|-------|-----------|-------|
+| Lowercase | a–z | 26 |
+| Uppercase | A–Z | 26 |
+| Digits | 0–9 | 10 |
+| Symbols | `!@#$%^&*()_+-=[]{}&#124;;:,.<>?/~` | 30 |
+| **Total** | | **92** |
+
+Enabling "exclude ambiguous" removes `0`, `O`, `o`, `l`, `1`, `I`, `|`, `` ` ``, `'`, `"`, `\` — reducing the pool by up to 11 characters depending on which classes are active.
+
+<Tip>
+  A 16-character password drawn from a pool of 92 has `16 × log₂(92) ≈ 104 bits` of entropy. Excluding ambiguous characters drops the pool to ~81 characters, giving `16 × log₂(81) ≈ 102 bits` — a negligible difference in security, with a meaningful gain in readability.
+</Tip>
+
+## Crack-time estimation
+
+KeyForge models a well-resourced offline attacker with a GPU cluster capable of **1 trillion guesses per second** (10¹² guesses/sec). This is a realistic upper bound for PBKDF2- or bcrypt-hashed targets; raw hash functions can be attacked significantly faster.
+
+The expected time to crack is:
+
+```
+crackTime (seconds) = 2^(entropy - 1) / 1,000,000,000,000
+```
+
+```javascript entropy.js
+function getCrackTime(entropyBits) {
+  const GPS  = 1e12; // guesses per second
+  const secs = Math.pow(2, entropyBits - 1) / GPS;
+  // ...
+}
+```
+
+The `entropy - 1` exponent reflects the average case: an attacker finds the password after searching half the keyspace.
+
+## Strength levels
+
+KeyForge maps entropy ranges to six labeled strength levels:
+
+| Level | Min bits | Max bits | Label |
+|-------|----------|----------|-------|
+| 0 | 0 | 35 | Very Weak |
+| 1 | 36 | 55 | Weak |
+| 2 | 56 | 72 | Fair |
+| 3 | 73 | 94 | Strong |
+| 4 | 95 | 127 | Very Strong |
+| 5 | 128 | ∞ | Fortress |
+
+<Note>
+  The **Fortress** threshold of 128 bits is significant: it equals the key size of AES-128, which is considered computationally unbreakable with current and near-future hardware. A password at this level cannot be brute-forced before the heat death of the universe at 10¹² guesses/sec.
+</Note>
+
+## Entropy DNA visualization
+
+The Entropy DNA strip renders each character in the generated password as a colored segment according to its character class. This gives a visual fingerprint of how varied the password's composition is.
+
+| Character class | Color | CSS variable |
+|----------------|-------|--------------|
+| Uppercase | Coral | `var(--dna-upper)` |
+| Lowercase | Silver | `var(--dna-lower)` |
+| Digit | Cyan | `var(--dna-digit)` |
+| Symbol | Gold | `var(--dna-symbol)` |
+
+A password with long monochrome runs indicates a skewed character class distribution — for example, many consecutive lowercase letters — which may be reflected in a lower entropy score if fewer classes are enabled.
+
+## Passphrase entropy
+
+Passphrases are generated from a word list of 200 words, with an optional injected digit and symbol:
+
+```
+entropy = (wordCount × log₂(200)) + log₂(90) + log₂(7)
+```
+
+- `wordCount × log₂(200)` — each word is drawn from 200 possibilities
+- `+ log₂(90)` — a 2-digit number (10–99) adds ~6.5 bits
+- `+ log₂(7)` — a symbol chosen from a pool of 7 adds ~2.8 bits
+
+```javascript entropy.js
+function calcPassphraseEntropy(wordCount, wordListSize = 200, hasNum = true, hasSym = true) {
+  let entropy = wordCount * Math.log2(wordListSize);
+  if (hasNum) entropy += Math.log2(90);   // 2-digit number
+  if (hasSym) entropy += Math.log2(7);    // symbol from pool of 7
+  return entropy;
+}
+```
+
+## Phonetic entropy
+
+Phonetic passwords are built from syllables with injected entropy characters. The syllable space is approximated from the inventory of onset consonants, vowels, and coda consonants in English:
+
+```
+syllableSpace = (39 × 10 × 17) + (39 × 10) = 7,020 variants
+entropy = (syllableCount × log₂(7020)) + (injections × injectedChars × log₂(19))
+```
+
+- `39` onset clusters × `10` vowels × `17` codas = 6,630 closed syllables
+- `39` onsets × `10` vowels = 390 open syllables (no coda)
+- Between and after syllables, entropy characters are injected from a combined pool of 11 symbols + 8 digits = 19 characters
+- The number of injected characters per position scales with the entropy level: `light = 1`, `medium = 2`, `heavy = 3`
+
+```javascript entropy.js
+function calcPhoneticEntropy(syllableCount, entropyLevel) {
+  const sylSpace = 39 * 10 * 17 + 39 * 10; // rough count
+  let entropy = syllableCount * Math.log2(sylSpace);
+  const injectedChars = { light: 1, medium: 2, heavy: 3 }[entropyLevel] || 2;
+  const injections    = syllableCount - 1 + 1; // between + end
+  const symPool = 11;
+  const digPool = 8;
+  entropy += injections * injectedChars * Math.log2(symPool + digPool);
+  return entropy;
+}
+```

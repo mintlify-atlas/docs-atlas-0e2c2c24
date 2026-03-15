@@ -1,0 +1,140 @@
+---
+title: "Phonetic Shield"
+description: "KeyForge's unique mode: pronounceable syllable-based passwords that you can say aloud and remember, yet resist dictionary, bruteforce, and pattern-based attacks."
+---
+
+Phonetic Shield is KeyForge's flagship generation mode. It builds passwords from randomly constructed syllables that follow natural phonotactic rules, making them pronounceable and therefore more memorable — without sacrificing cryptographic security. Entropy is injected between each syllable pair and appended at the end.
+
+## Why Phonetic Shield is different
+
+Most generators make you choose between two extremes:
+
+- **Memorable but weak** — real words, short PINs, or predictable substitutions.
+- **Secure but unreadable** — random character strings that require copy-paste to use.
+
+Phonetic Shield rejects this tradeoff. Because the syllables are pronounceable, your brain can encode them phonetically. Because the structure is algorithmically generated and not drawn from any word list, dictionary attacks are ineffective. The entropy injection between syllables ensures the password cannot be reconstructed from pronunciation alone.
+
+## Syllable structure
+
+Each syllable is assembled from three components:
+
+| Component | Pool | Count | Notes |
+|-----------|------|-------|-----------|
+| **Onset** (consonant cluster) | `b d f g h j k l m n p r s t v w z bl br cl cr dr fl fr gl gr pl pr sl sm sn sp st sw tr wr sk sc` | 39 options | Always present |
+| **Vowel nucleus** | `a e i o u ay ee oo ai au` | 10 options | Always present |
+| **Coda** (trailing cluster) | `b d f g k l m n p r s t x z nd nt st ck mp nk sk sp` | 23 options | Present 67% of the time |
+
+The total syllable space is:
+
+```text
+With coda (67%):    39 × 10 × 23 = 8,970 variants
+Without coda (33%): 39 × 10 × 1  =   390 variants
+Weighted average: ≈ 6,381 effective variants per syllable
+```
+
+**Example syllables:** `bray`, `flund`, `stoo`, `krent`, `veesk`, `plon`
+
+## Syllable count
+
+<ParamField path="syllableCount" type="number" default="3">
+  Number of syllable groups in the password. Accepts values from **2 to 6**. Each syllable group adds approximately `log₂(6,381) ≈ 12.6` bits of entropy.
+</ParamField>
+
+<ParamField path="capitalize" type="boolean" default="true">
+  Capitalize the first letter of each syllable. Satisfies uppercase requirements and visually separates groups when reading the pronunciation guide.
+</ParamField>
+
+## Entropy injection levels
+
+Entropy characters are inserted **between each adjacent syllable pair** and **appended at the end** of the password.
+
+<ParamField path="entropyLevel" type="string" default="medium">
+  Controls how many characters are injected at each entropy position. Accepts `light`, `medium`, or `heavy`.
+</ParamField>
+
+<Tabs>
+  <Tab title="Light">
+    **1 character** per injection point: a single symbol drawn from `!@#$%^&*_+-` (11 options).
+
+    Adds `log₂(11) ≈ 3.46` bits per position.
+
+    ```text
+    Example (3 syllables): Bray#Flund*Stoo!
+    ```
+
+    Best for: sites with short maximum password lengths that still require a symbol.
+  </Tab>
+  <Tab title="Medium">
+    **2 characters** per injection point: one symbol from `!@#$%^&*_+-` (11 options) and one digit from `23456789` (8 options, excluding `0` and `1` for clarity), in random order.
+
+    Adds `log₂(11) + log₂(8) + log₂(2) ≈ 6.46` bits per position (11 × 8 × 2 = 176 combinations).
+
+    ```text
+    Example (3 syllables): Bray#4Flund*7Stoo3!
+    ```
+
+    Best for: general-purpose use. Balances entropy, length, and readability.
+  </Tab>
+  <Tab title="Heavy">
+    **3 characters** per injection point: symbol + digit + symbol, drawn independently from their respective pools.
+
+    Adds `log₂(11) + log₂(8) + log₂(11) ≈ 6.95` bits per position (11 × 8 × 11 = 968 combinations).
+
+    ```text
+    Example (3 syllables): Bray#4*Flund!7@Stoo^3#
+    ```
+
+    Best for: high-value accounts where maximum entropy per character is required.
+  </Tab>
+</Tabs>
+
+<Note>
+  Entropy is always appended at the **end** of the password as well, even after the final syllable. For a 3-syllable password there are 3 injection points: between syllable 1 and 2, between syllable 2 and 3, and after syllable 3.
+</Note>
+
+## Pronunciation guide
+
+Every Phonetic Shield password is accompanied by a pronunciation guide displayed directly in the UI. The guide shows the uppercase syllable groups separated by ` · `:
+
+```text
+Password: Bray#4Flund*7Stoo3!
+Guide:    BRAY · FLUND · STOO
+```
+
+The guide omits entropy characters so you can focus on the phonetic structure when memorizing or reading the password aloud.
+
+## Entropy calculation
+
+For a 3-syllable, medium-entropy password:
+
+```text
+Syllable entropy:  3 × log₂(6,381) ≈ 37.8 bits
+Entropy chars:     3 positions × 6.46 bits ≈ 19.4 bits
+                   ─────────────────────────────────
+Total:             ≈ 57.2 bits
+```
+
+| Syllables | Light | Medium | Heavy |
+|-----------|-------|--------|-------|
+| 2 | ≈ 32.1 bits | ≈ 38.1 bits | ≈ 39.0 bits |
+| 3 | ≈ 48.0 bits | ≈ 57.2 bits | ≈ 58.8 bits |
+| 4 | ≈ 64.0 bits | ≈ 76.4 bits | ≈ 78.5 bits |
+| 5 | ≈ 79.9 bits | ≈ 95.5 bits | ≈ 98.2 bits |
+| 6 | ≈ 95.9 bits | ≈ 114.6 bits | ≈ 117.9 bits |
+
+## When to use Phonetic Shield
+
+**Use Phonetic Shield when:**
+- You need to type the password from memory on an unfamiliar device.
+- You must read the password aloud (e.g., phone verification with a support agent).
+- You want a strong password that doesn't require a password manager to use.
+- The target system has a moderate maximum length (24–40 characters).
+
+**Use Password mode instead when:**
+- Maximum entropy density per character is required (e.g., a 32-character API secret).
+- The password will always be copied and pasted and memorability is irrelevant.
+- The system enforces a very short maximum length (< 12 characters) where syllable structure won't fit cleanly.
+
+<Tip>
+  For most human-facing accounts — email, banking, work SSO — a 3-syllable Heavy or 4-syllable Medium Phonetic Shield password hits the sweet spot: pronounceable enough to memorize after two readings, strong enough to resist offline bruteforce attacks.
+</Tip>

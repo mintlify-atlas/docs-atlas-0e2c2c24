@@ -1,0 +1,103 @@
+---
+title: "Passphrase mode"
+description: "Generate memorable, word-based passwords drawn from a 200-word curated list with optional leet substitution, numbers, and symbols."
+---
+
+Passphrase mode concatenates randomly chosen words to form a password that is both strong and speakable. Because words are far easier to memorize than random character strings, passphrases are ideal for master passwords, device encryption keys, and any credential you need to type from memory.
+
+## Overview
+
+Words are drawn from a curated 200-word list modeled on the EFF Short Wordlist. Every word was selected for clarity and unambiguity — no homophones, no obscure technical terms. Each word is chosen independently using `cryptoRand()`, so selections are statistically independent.
+
+**Example output:**
+
+```text
+Coral-Wind-Flame-Dust-Rock-47!
+```
+
+## Options
+
+<ParamField path="wordCount" type="number" default="5">
+  Number of words in the phrase. Accepts values from **3 to 10**. Each additional word adds `log₂(200) ≈ 7.64` bits of entropy.
+</ParamField>
+
+<ParamField path="separator" type="string" default="-">
+  Character placed between each word. Available options:
+
+  | Label | Value |
+  |-------|-------|
+  | Dash | `-` |
+  | Dot | `.` |
+  | Space | ` ` |
+  | Underscore | `_` |
+  | Hash | `#` |
+  | None | `` (empty string) |
+</ParamField>
+
+<ParamField path="capitalize" type="boolean" default="true">
+  Capitalize the first letter of each word. Increases visual clarity and satisfies many sites' uppercase requirements without reducing entropy.
+</ParamField>
+
+<ParamField path="appendNum" type="boolean" default="true">
+  Append a random 2-digit number in the range **10–99** (90 possible values) after the final word, separated by the active separator. Adds `log₂(90) ≈ 6.49` bits.
+</ParamField>
+
+<ParamField path="appendSym" type="boolean" default="true">
+  Append a random symbol drawn from `!@#$%&*` (7 possible values) at the very end of the phrase. Adds `log₂(7) ≈ 2.81` bits and satisfies symbol requirements on most sites.
+</ParamField>
+
+<ParamField path="useLeet" type="boolean" default="false">
+  Apply leet substitutions to every word before inserting it into the phrase.
+
+  | Original | Leet |
+  |----------|------|
+  | `a` / `A` | `@` |
+  | `e` / `E` | `3` |
+  | `i` / `I` | `1` |
+  | `o` / `O` | `0` |
+  | `s` / `S` | `$` |
+  | `t` / `T` | `7` |
+
+  Example: `Coral` → `C0r@l`, `Stone` → `$70n3`
+</ParamField>
+
+## Entropy calculation
+
+With all options enabled and their default values, a 5-word passphrase has:
+
+```text
+Entropy = wordCount × log₂(200) + log₂(90) + log₂(7)
+        = 5 × 7.644 + 6.492 + 2.807
+        = 38.22 + 6.49 + 2.81
+        ≈ 47.5 bits
+```
+
+Each extra word adds ≈ 7.64 bits:
+
+| Word count | Entropy (with number + symbol) |
+|-----------|--------------------------------|
+| 3 | ≈ 32.2 bits |
+| 4 | ≈ 39.9 bits |
+| 5 | ≈ 47.5 bits |
+| 6 | ≈ 55.1 bits |
+| 7 | ≈ 62.8 bits |
+| 8 | ≈ 70.4 bits |
+| 10 | ≈ 85.7 bits |
+
+<Note>
+  Leet substitution (`useLeet`) does **not** increase entropy in this implementation because the substitution map is deterministic and publicly known. It satisfies character-class requirements on sites that require symbols or digits but does not add randomness.
+</Note>
+
+## Why passphrases work
+
+A random-character password is hard to memorize but easy for a computer to generate and store. A passphrase trades a slightly larger character footprint for a credential you can:
+
+- **Type from memory** without a password manager.
+- **Dictate over the phone** to IT support without spelling out symbols.
+- **Write on paper** in a readable form for emergency access.
+
+At 6 words with number and symbol appended (~55 bits), a passphrase is stronger than most 10-character random passwords and far more memorable.
+
+<Tip>
+  Use 6 or more words for master passwords (password manager vault, disk encryption). Use 4–5 words for accounts you access frequently from different devices where typing speed matters.
+</Tip>

@@ -1,0 +1,429 @@
+---
+title: "PassGen API"
+description: "Complete reference for the window.PassGen object — KeyForge's password generation engine exposed for programmatic use."
+---
+
+`window.PassGen` is KeyForge's core generation engine, available globally in the browser. It exposes four generators, two constants, a pool builder, and three pattern-detection helpers.
+
+```javascript
+// All methods are available via:
+const { generatePassword, generatePassphrase, generatePin, generatePhonetic } = window.PassGen;
+```
+
+---
+
+## Generators
+
+### `generatePassword(options)`
+
+Generates a cryptographically secure random password using `crypto.getRandomValues()`. The character pool is built from the enabled character classes, filtered by exclusion rules, and then sampled with a Fisher-Yates shuffle to guarantee minimum per-class requirements.
+
+```javascript
+const password = PassGen.generatePassword({
+  length: 20,
+  useLower: true,
+  useUpper: true,
+  useDigits: true,
+  useSymbols: true,
+  excludeAmbiguous: true,
+  noSequential: true,
+  noWeakFragment: true,
+  minLower: 2,
+  minUpper: 2,
+  minDigits: 2,
+  minSymbols: 2,
+});
+// e.g. "rK7#mP2@vNxQ8$wT4!jL"
+```
+
+**Parameters**
+
+<ParamField path="options.length" type="number" default="16">
+  Password length. Range: 8–128.
+</ParamField>
+
+<ParamField path="options.useLower" type="boolean" default="true">
+  Include lowercase letters (`a–z`).
+</ParamField>
+
+<ParamField path="options.useUpper" type="boolean" default="true">
+  Include uppercase letters (`A–Z`).
+</ParamField>
+
+<ParamField path="options.useDigits" type="boolean" default="true">
+  Include digit characters (`0–9`).
+</ParamField>
+
+<ParamField path="options.useSymbols" type="boolean" default="true">
+  Include symbol characters from `symbolSet`.
+</ParamField>
+
+<ParamField path="options.symbolSet" type="string" default="!@#$%^&*()_+-=[]{}|;:,.<>?/~">
+  The full symbol pool to draw from when `useSymbols` is `true`.
+</ParamField>
+
+<ParamField path="options.excludeAmbiguous" type="boolean" default="false">
+  Exclude visually ambiguous characters: `0`, `O`, `o`, `l`, `1`, `I`, `|`, `` ` ``, `'`, `"`, `\`.
+</ParamField>
+
+<ParamField path="options.noRepeating" type="boolean" default="false">
+  Reject passwords that contain any run of the same character longer than 2.
+</ParamField>
+
+<ParamField path="options.noSequential" type="boolean" default="true">
+  Reject passwords that contain keyboard walks (e.g. `qwe`, `asd`) or sequential character runs (e.g. `abc`, `123`) of length ≥ 3.
+</ParamField>
+
+<ParamField path="options.noWeakFragment" type="boolean" default="true">
+  Reject passwords that contain common weak substrings such as `pass`, `admin`, `qwer`, `1234`, and others from the built-in `WEAK_PATTERNS` set.
+</ParamField>
+
+<ParamField path="options.customExclude" type="string" default="''">
+  A string of individual characters to remove from the pool. Each character in the string is excluded.
+</ParamField>
+
+<ParamField path="options.customInclude" type="string" default="''">
+  A string of additional characters to add to the pool, beyond the standard character classes.
+</ParamField>
+
+<ParamField path="options.minLower" type="number" default="1">
+  Minimum number of lowercase characters guaranteed in the output.
+</ParamField>
+
+<ParamField path="options.minUpper" type="number" default="1">
+  Minimum number of uppercase characters guaranteed in the output.
+</ParamField>
+
+<ParamField path="options.minDigits" type="number" default="1">
+  Minimum number of digit characters guaranteed in the output.
+</ParamField>
+
+<ParamField path="options.minSymbols" type="number" default="1">
+  Minimum number of symbol characters guaranteed in the output.
+</ParamField>
+
+**Returns**
+
+<ResponseField name="password" type="string">
+  The generated password string of the requested length.
+</ResponseField>
+
+---
+
+### `generatePassphrase(options)`
+
+Assembles a memorable passphrase by selecting words at random from the built-in 200-word `WORDLIST`, then optionally appending a number and/or symbol.
+
+```javascript
+const phrase = PassGen.generatePassphrase({
+  wordCount: 4,
+  separator: '-',
+  capitalize: true,
+  appendNum: true,
+  appendSym: true,
+  useLeet: false,
+});
+// e.g. "Coral-Flame-Stone-River-7!"
+```
+
+<ParamField path="options.wordCount" type="number" default="5">
+  Number of words to include. Typical range: 3–8.
+</ParamField>
+
+<ParamField path="options.separator" type="string" default="'-'">
+  Character(s) placed between each word.
+</ParamField>
+
+<ParamField path="options.capitalize" type="boolean" default="true">
+  Capitalize the first letter of each word.
+</ParamField>
+
+<ParamField path="options.appendNum" type="boolean" default="true">
+  Append a random single digit (0–9) at the end.
+</ParamField>
+
+<ParamField path="options.appendSym" type="boolean" default="true">
+  Append a random symbol from a small set at the end.
+</ParamField>
+
+<ParamField path="options.useLeet" type="boolean" default="false">
+  Apply leet-speak substitutions to vowels (`a→4`, `e→3`, `i→1`, `o→0`, `s→5`).
+</ParamField>
+
+**Returns**
+
+<ResponseField name="passphrase" type="string">
+  The assembled passphrase string.
+</ResponseField>
+
+---
+
+### `generatePin(options)`
+
+Generates a numeric PIN using `crypto.getRandomValues()`, with optional constraints to avoid repeating digits, sequential runs, and common patterns.
+
+```javascript
+const pin = PassGen.generatePin({
+  length: 6,
+  noRepeat: false,
+  noSequential: true,
+  noCommon: true,
+});
+// e.g. "847362"
+```
+
+<ParamField path="options.length" type="number" default="6">
+  Number of digits in the PIN.
+</ParamField>
+
+<ParamField path="options.noRepeat" type="boolean" default="false">
+  Disallow any digit from appearing more than once.
+</ParamField>
+
+<ParamField path="options.noSequential" type="boolean" default="true">
+  Reject PINs that contain ascending or descending digit runs of length ≥ 3 (e.g. `123`, `987`).
+</ParamField>
+
+<ParamField path="options.noCommon" type="boolean" default="true">
+  Reject commonly used PIN patterns such as `000000`, `123456`, and birth-year-like sequences.
+</ParamField>
+
+**Returns**
+
+<ResponseField name="pin" type="string">
+  The generated PIN as a numeric string.
+</ResponseField>
+
+---
+
+### `generatePhonetic(options)`
+
+Builds a pronounceable password from random phonetic syllables. Each syllable follows consonant-vowel-consonant patterns, making the result easier to memorize and communicate. An optional pronunciation guide groups the syllables visually.
+
+```javascript
+const result = PassGen.generatePhonetic({
+  syllableCount: 4,
+  entropyLevel: 'medium',
+  capitalize: true,
+});
+// result.password => "BrayFlundStooKelt"
+// result.guide    => "BRAY · FLUND · STOO · KELT"
+```
+
+<ParamField path="options.syllableCount" type="number" default="3">
+  Number of syllable groups to generate.
+</ParamField>
+
+<ParamField path="options.entropyLevel" type="string" default="'medium'">
+  Controls how many extra random characters are injected between syllables to increase entropy.
+
+  - `'light'` — 1 injected character per syllable boundary
+  - `'medium'` — 2 injected characters per syllable boundary
+  - `'heavy'` — 3 injected characters per syllable boundary
+</ParamField>
+
+<ParamField path="options.capitalize" type="boolean" default="true">
+  Capitalize the first letter of each syllable group.
+</ParamField>
+
+**Returns**
+
+<ResponseField name="result" type="object">
+  <Expandable title="properties" defaultOpen={true}>
+    <ResponseField name="password" type="string">
+      The generated phonetic password string.
+    </ResponseField>
+    <ResponseField name="guide" type="string">
+      Human-readable pronunciation guide with syllable groups separated by ` · ` (middle dot). Example: `"BRAY · FLUND · STOO"`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Pool builder
+
+### `buildPool(options)`
+
+Constructs the effective character pool used internally by `generatePassword`. Useful when you need to inspect the exact pool size before calculating entropy.
+
+```javascript
+const pool = PassGen.buildPool({
+  useLower: true,
+  useUpper: true,
+  useDigits: false,
+  useSymbols: true,
+  excludeAmbiguous: true,
+  customExclude: 'xyz',
+});
+
+console.log(pool.all.length); // effective pool size
+console.log(pool.lower);      // filtered lowercase string
+console.log(pool.upper);      // filtered uppercase string
+console.log(pool.digits);     // filtered digits string (empty when useDigits=false)
+console.log(pool.symbols);    // filtered symbols string
+```
+
+<ParamField path="options.useLower" type="boolean">
+  Include lowercase characters in the pool.
+</ParamField>
+
+<ParamField path="options.useUpper" type="boolean">
+  Include uppercase characters in the pool.
+</ParamField>
+
+<ParamField path="options.useDigits" type="boolean">
+  Include digit characters in the pool.
+</ParamField>
+
+<ParamField path="options.useSymbols" type="boolean">
+  Include symbol characters in the pool.
+</ParamField>
+
+<ParamField path="options.symbolSet" type="string">
+  Symbol source string. Defaults to `CHARSETS.symbols`.
+</ParamField>
+
+<ParamField path="options.excludeAmbiguous" type="boolean">
+  Strip the ambiguous character set from the pool.
+</ParamField>
+
+<ParamField path="options.customExclude" type="string">
+  Additional characters to strip from the pool.
+</ParamField>
+
+**Returns**
+
+<ResponseField name="pool" type="object">
+  <Expandable title="properties" defaultOpen={true}>
+    <ResponseField name="lower" type="string">
+      Filtered lowercase character string.
+    </ResponseField>
+    <ResponseField name="upper" type="string">
+      Filtered uppercase character string.
+    </ResponseField>
+    <ResponseField name="digits" type="string">
+      Filtered digit character string.
+    </ResponseField>
+    <ResponseField name="symbols" type="string">
+      Filtered symbol character string.
+    </ResponseField>
+    <ResponseField name="all" type="string">
+      Concatenation of all enabled, filtered character strings — the final pool.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Constants
+
+### `CHARSETS`
+
+The base character sets used to build password pools.
+
+```javascript
+PassGen.CHARSETS.lower;   // 'abcdefghijklmnopqrstuvwxyz'
+PassGen.CHARSETS.upper;   // 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+PassGen.CHARSETS.digits;  // '0123456789'
+PassGen.CHARSETS.symbols; // '!@#$%^&*()_+-=[]{}|;:,.<>?/~'
+```
+
+| Key | Value |
+|-----|-------|
+| `lower` | `abcdefghijklmnopqrstuvwxyz` |
+| `upper` | `ABCDEFGHIJKLMNOPQRSTUVWXYZ` |
+| `digits` | `0123456789` |
+| `symbols` | 30 special characters including `!@#$%^&*()_+-=[]{}` and punctuation |
+
+### `WORDLIST`
+
+A curated array of 200 common English words used by `generatePassphrase`. Words are selected to be short, unambiguous, and easy to spell.
+
+```javascript
+console.log(PassGen.WORDLIST.length); // 200
+console.log(PassGen.WORDLIST[0]);     // first word in the list
+
+// Sample a word manually:
+const word = PassGen.WORDLIST[Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] % 200)];
+```
+
+<Note>
+  The wordlist size of 200 directly affects passphrase entropy. Each word contributes log₂(200) ≈ 7.6 bits of entropy. See the [Entropy API](/reference/entropy-api) for the full entropy calculation formula.
+</Note>
+
+---
+
+## Pattern-detection helpers
+
+These functions are used internally by `generatePassword` to validate generated passwords against common weakness patterns. They are exposed for use in custom validation logic.
+
+### `hasKeyboardWalk(str, seqLen?)`
+
+Returns `true` if `str` contains a keyboard-row sequence of length ≥ `seqLen`.
+
+```javascript
+PassGen.hasKeyboardWalk('myqwerty7');  // true  — contains 'qwert'
+PassGen.hasKeyboardWalk('myR4nd0m!'); // false
+PassGen.hasKeyboardWalk('asdf', 3);   // true  — 'asd' is a keyboard walk
+```
+
+Keyboard rows checked: `qwertyuiop`, `asdfghjkl`, `zxcvbnm`, `1234567890`.
+
+<ParamField path="str" type="string" required>
+  The string to test.
+</ParamField>
+
+<ParamField path="seqLen" type="number" default="3">
+  Minimum run length to consider a keyboard walk.
+</ParamField>
+
+<ResponseField name="result" type="boolean">
+  `true` if a keyboard walk of at least `seqLen` characters is found.
+</ResponseField>
+
+---
+
+### `hasSequentialChars(str, seqLen?)`
+
+Returns `true` if `str` contains an ascending or descending sequential character run of length ≥ `seqLen`, by Unicode code point.
+
+```javascript
+PassGen.hasSequentialChars('abc123');  // true  — 'abc' and '123'
+PassGen.hasSequentialChars('R4nd0m!'); // false
+PassGen.hasSequentialChars('xyz', 3); // true
+```
+
+<ParamField path="str" type="string" required>
+  The string to test.
+</ParamField>
+
+<ParamField path="seqLen" type="number" default="3">
+  Minimum run length to flag as sequential.
+</ParamField>
+
+<ResponseField name="result" type="boolean">
+  `true` if a sequential run of at least `seqLen` characters is found.
+</ResponseField>
+
+---
+
+### `hasWeakFragment(str)`
+
+Returns `true` if the lowercase form of `str` contains any substring from the built-in `WEAK_PATTERNS` set.
+
+```javascript
+PassGen.hasWeakFragment('MyPass1!');   // true  — contains 'pass'
+PassGen.hasWeakFragment('Adm1n#99');   // true  — contains 'admin'
+PassGen.hasWeakFragment('R7#kXv2@');   // false
+```
+
+The `WEAK_PATTERNS` set includes: `pass`, `word`, `admin`, `root`, `user`, `login`, `test`, `demo`, `temp`, `qwer`, `asdf`, `zxcv`, `1234`, `abcd`, `hello`, `welco`, `secre`, `chang`, `defau`, `guest`, and more.
+
+<ParamField path="str" type="string" required>
+  The string to test.
+</ParamField>
+
+<ResponseField name="result" type="boolean">
+  `true` if a weak pattern fragment is found in the string.
+</ResponseField>
